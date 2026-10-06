@@ -1,0 +1,324 @@
+{
+  "sourceURL": "https://github.com/drippinghere/overwatch-hero-icons",
+  "sourceRevision": "f4ddc06cf07d0741c40beda77eeeb1a81a99a279",
+  "heroes": [
+    {
+      "id": "ana",
+      "title": "安娜",
+      "englishName": "Ana",
+      "sha256": "0fd505c32ba60185b6c0d3eb22ec152691e5b8c305a843b612efe7f8ccd53398"
+    },
+    {
+      "id": "anran",
+      "title": "安燃",
+      "englishName": "Anran",
+      "sha256": "28d8d74c0abbdf2bc249a59b31c8e7c12b7679a86968dfb8948b8ebc5d427646"
+    },
+    {
+      "id": "ashe",
+      "title": "艾什",
+      "englishName": "Ashe",
+      "sha256": "38d10320719aed681bc8dd9ea3a04bc961b417447d66ae39a3a1be82cd8e3428"
+    },
+    {
+      "id": "baptiste",
+      "title": "巴蒂斯特",
+      "englishName": "Baptiste",
+      "sha256": "85730f90a90d2a219eecfff522aa4ba628a427d03aa75bfe817201cfc9fa195f"
+    },
+    {
+      "id": "bastion",
+      "title": "堡垒",
+      "englishName": "Bastion",
+      "sha256": "00de00812c0d62fa9972424a31069074d6d28cb6647ea609f264aeee93933375"
+    },
+    {
+      "id": "brigitte",
+      "title": "布丽吉塔",
+      "englishName": "Brigitte",
+      "sha256": "9c1a47d83a15e16c96052ce17c64fdad547aa21b02b9c31052e5c725b4217ceb"
+    },
+    {
+      "id": "cassidy",
+      "title": "卡西迪",
+      "englishName": "Cassidy",
+      "sha256": "05143206dc449f6f9f97aee139c69ae48a2eb13ee30988151a26e3eb5e2d053a"
+    },
+    {
+      "id": "dmon",
+      "title": "D.Mon",
+      "englishName": "D.Mon",
+      "sha256": "bd07e11a24ad8a7dd3af4356a82cbd544e8dd9dc2fb1a2a6e4b7822a844c639c"
+    },
+    {
+      "id": "domina",
+      "title": "Domina",
+      "englishName": "Domina",
+      "sha256": "d559b18a4dba94cf7f0c9235f2dd4d0a669a444250e8a7730473a411e628579f"
+    },
+    {
+      "id": "doomfist",
+      "title": "末日铁拳",
+      "englishName": "Doomfist",
+      "sha256": "ffb1892d88b7b2dcac15dcd3c2f5805e1c32121c93b8a23887e158731a5a677f"
+    },
+    {
+      "id": "dva",
+      "title": "D.Va",
+      "englishName": "D.Va",
+      "sha256": "c4e0eb467c20db0a8d2e5ec87b2796a0341621c2ed9c8d70599334b38fb4e962"
+    },
+    {
+      "id": "echo",
+      "title": "回声",
+      "englishName": "Echo",
+      "sha256": "360628267b266fee8403a0c9d4ff566d13cb09a98746bbda48e67a1a3cf1ae60"
+    },
+    {
+      "id": "emre",
+      "title": "Emre",
+      "englishName": "Emre",
+      "sha256": "78b57a888df96f7f4b4e3879f545723d954b7f0debc8dc108dd60a91f784e835"
+    },
+    {
+      "id": "freja",
+      "title": "弗蕾娅",
+      "englishName": "Freja",
+      "sha256": "a33fb652c928ce97626714efd1522b4952e4bc431ca3f8c39d34a64203b0ac6d"
+    },
+    {
+      "id": "genji",
+      "title": "源氏",
+      "englishName": "Genji",
+      "sha256": "f44680d1c0eed6354c60865db725407959299f69c7c3cba7558e4e1306e3f214"
+    },
+    {
+      "id": "hanzo",
+      "title": "半藏",
+      "englishName": "Hanzo",
+      "sha256": "8c72ce1d4f72b40557fdb00375eee0e8a70e1bcb6a9f52b40b22409ade828f95"
+    },
+    {
+      "id": "hazard",
+      "title": "骇灾",
+      "englishName": "Hazard",
+      "sha256": "1d9eab16f23de27020ef2313c5c2814dd5549aa98a8d33da2e4ee752f69d7465"
+    },
+    {
+      "id": "illari",
+      "title": "伊拉锐",
+      "englishName": "Illari",
+      "sha256": "bed06dd0061a6595c756406c90d206633533d40df755c692f0d8864e6a247e66"
+    },
+    {
+      "id": "jetpack-cat",
+      "title": "Jetpack Cat",
+      "englishName": "Jetpack Cat",
+      "sha256": "0fd3b9fab92de36533b482fac145de69da799a09bfde3986f45168f1f7458ad5"
+    },
+    {
+      "id": "junker-queen",
+      "title": "渣客女王",
+      "englishName": "Junker Queen",
+      "sha256": "74183f472e20ecf244bc0cf3e30db815718e287bb2f04dcf6bd4076407934129"
+    },
+    {
+      "id": "junkrat",
+      "title": "狂鼠",
+      "englishName": "Junkrat",
+      "sha256": "59c59f664a276a7119832e2a3a13f303ec5ccb08a8c01c8e53464d4aa2b06197"
+    },
+    {
+      "id": "juno",
+      "title": "朱诺",
+      "englishName": "Juno",
+      "sha256": "793d273448342697a0f0d751f4da01962688798f4efba776f4836e14c6b5e147"
+    },
+    {
+      "id": "kiriko",
+      "title": "雾子",
+      "englishName": "Kiriko",
+      "sha256": "fe1f79ca4c57cf51f68c7ccfe456de5a907a297906792dd10557d50c0822f12d"
+    },
+    {
+      "id": "lifeweaver",
+      "title": "生命之梭",
+      "englishName": "Lifeweaver",
+      "sha256": "687f8ebb1ed74ad8b8d22193c154c0b067a0c9e2a27efaedec34fb9dd48afdb7"
+    },
+    {
+      "id": "lucio",
+      "title": "卢西奥",
+      "englishName": "Lúcio",
+      "sha256": "913e3679857c95023c8775da2a20b2c72099acc3f15c0f485482d1ad94ab9ca4"
+    },
+    {
+      "id": "mauga",
+      "title": "毛加",
+      "englishName": "Mauga",
+      "sha256": "6574ef434e027a2f2d4c16c2317cdbf90974e10375c838edf0b284fc819d9124"
+    },
+    {
+      "id": "mei",
+      "title": "美",
+      "englishName": "Mei",
+      "sha256": "017e9ef2c8ff7480c81ab94d187823c41cedd53ceef2fb765570cc230cbf16bf"
+    },
+    {
+      "id": "mercy",
+      "title": "天使",
+      "englishName": "Mercy",
+      "sha256": "0f2d14328b18d58663095d6b4366597d44219b4e59e7c5518f7afdda4373383b"
+    },
+    {
+      "id": "mizuki",
+      "title": "Mizuki",
+      "englishName": "Mizuki",
+      "sha256": "4262ad05e8172b4e1505c8d1ac2968e6041f004aee4c95102d76b5a2888b198f"
+    },
+    {
+      "id": "moira",
+      "title": "莫伊拉",
+      "englishName": "Moira",
+      "sha256": "199b3284359b48b6b524172a963cf8691c2fb78757b53b9e2903cad8671c54a4"
+    },
+    {
+      "id": "orisa",
+      "title": "奥丽莎",
+      "englishName": "Orisa",
+      "sha256": "b5fd874cff0f450810019231270b0394ed317588618a93f7b7164ed23ffb0ea8"
+    },
+    {
+      "id": "pharah",
+      "title": "法老之鹰",
+      "englishName": "Pharah",
+      "sha256": "d642b6954a374b4d326092963d18e59779cbe426f57351f274ade74382e6bb9a"
+    },
+    {
+      "id": "ramattra",
+      "title": "拉玛刹",
+      "englishName": "Ramattra",
+      "sha256": "87a2e3d25c49a110a915c4d613e914a0dbedaf8dd20961ce7cfa410333e30dee"
+    },
+    {
+      "id": "reaper",
+      "title": "死神",
+      "englishName": "Reaper",
+      "sha256": "107f27c8aa35df6026617ce1512f44743ffea7f8288bcfe8f79be897ee4f1de9"
+    },
+    {
+      "id": "reinhardt",
+      "title": "莱因哈特",
+      "englishName": "Reinhardt",
+      "sha256": "4e8542499d9437693e86605ff10f6816204ed335bf205f14cee9e97cb516406d"
+    },
+    {
+      "id": "roadhog",
+      "title": "路霸",
+      "englishName": "Roadhog",
+      "sha256": "5cf50c93f61d237fc4d36c9d0835db9c37b61756f0586d68edd26e6191a37dde"
+    },
+    {
+      "id": "shion",
+      "title": "Shion",
+      "englishName": "Shion",
+      "sha256": "81e7d8ea151674d12ba2dfd1ee97ba46a434a8f579d5aeea22aaeb0d161a3750"
+    },
+    {
+      "id": "sierra",
+      "title": "Sierra",
+      "englishName": "Sierra",
+      "sha256": "8a0b26c286c47c4e9dc01be303324b6c9f37319d5ce94f8866d0ccb80df3fcb9"
+    },
+    {
+      "id": "sigma",
+      "title": "西格玛",
+      "englishName": "Sigma",
+      "sha256": "a8f978e620f35ac3fc54125629d4c7fefcb815af3fadd9af1a97315675958cc8"
+    },
+    {
+      "id": "sojourn",
+      "title": "索杰恩",
+      "englishName": "Sojourn",
+      "sha256": "1bad5dee4bfd9887fe83efd04de17f014484a04bf8ee1f861bfc6ef5309a2519"
+    },
+    {
+      "id": "soldier-76",
+      "title": "士兵：76",
+      "englishName": "Soldier: 76",
+      "sha256": "236909636df93886bfc915fe624b52ff917456fbb4ef6a0622a03cfdb8be9992"
+    },
+    {
+      "id": "sombra",
+      "title": "黑影",
+      "englishName": "Sombra",
+      "sha256": "d6b3e491630f7913bc9a720f4ab14ae606f4b53b7e1713d797a78ed864fff4da"
+    },
+    {
+      "id": "symmetra",
+      "title": "秩序之光",
+      "englishName": "Symmetra",
+      "sha256": "0d8308ae9aa791ba9830cdd7215fc8a5e24c5c1e52182b0a18cfec0b7e375aed"
+    },
+    {
+      "id": "torbjorn",
+      "title": "托比昂",
+      "englishName": "Torbjörn",
+      "sha256": "637ad9971646bdff91165c373646c7aa79b4821d3940ddac5d6d923dde52e003"
+    },
+    {
+      "id": "tracer",
+      "title": "猎空",
+      "englishName": "Tracer",
+      "sha256": "f6471baf1ef78aea973fb1fb7f53d39f0e0e89c2561373013ad033a9c3a2c519"
+    },
+    {
+      "id": "vendetta",
+      "title": "Vendetta",
+      "englishName": "Vendetta",
+      "sha256": "21553bfe2ba42e12f681594a135803a8bc268aa3ece349f4263edc6fb90ff622"
+    },
+    {
+      "id": "venture",
+      "title": "探奇",
+      "englishName": "Venture",
+      "sha256": "aa031497e14100a1453197161a959c9269d451d835fd208822abc1e874de5285"
+    },
+    {
+      "id": "widowmaker",
+      "title": "黑百合",
+      "englishName": "Widowmaker",
+      "sha256": "26a6c48dbc0e292319e0b9138dfb33a09f54e47bdbcaf56bf6b228eaf2cd7c13"
+    },
+    {
+      "id": "winston",
+      "title": "温斯顿",
+      "englishName": "Winston",
+      "sha256": "7605e7b82fc3665668d7a4b28ce0b753058d0bd1c8ce8d6f2a0004a7b9f5b8fc"
+    },
+    {
+      "id": "wrecking-ball",
+      "title": "破坏球",
+      "englishName": "Wrecking Ball",
+      "sha256": "41a303ec912f7a1bd77163175b7538e862f76862a49fbfb0c3d7dd0fb1d31a78"
+    },
+    {
+      "id": "wuyang",
+      "title": "无漾",
+      "englishName": "Wuyang",
+      "sha256": "0c99e5da0cc8db90f913c7526eff690ff9d3de750fa92ad0b1017f5b2d0c1f48"
+    },
+    {
+      "id": "zarya",
+      "title": "查莉娅",
+      "englishName": "Zarya",
+      "sha256": "734516889401be52f474e9feeeabaa002f94ab38c974617c569011d9becac51c"
+    },
+    {
+      "id": "zenyatta",
+      "title": "禅雅塔",
+      "englishName": "Zenyatta",
+      "sha256": "e28b5701e4ba8e4fcffa1214dba66c06575ee47f86f68572bc5404fc7e26a89f"
+    }
+  ]
+}

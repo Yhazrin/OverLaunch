@@ -1,0 +1,41 @@
+# Publish only reviewed project files. Local handoffs and diagnostics stay private.
+/*
+!/Sources/
+!/Tests/
+!/scripts/
+!/Assets/
+!/Vendor/
+!/docs/
+!/.github/
+!/Package.swift
+!/README.md
+!/THIRD_PARTY.md
+!/RELEASE_NOTES.md
+!/PRODUCT.md
+!/LICENSE
+!/CONTRIBUTING.md
+!/.gitignore
+
+.build/
+dist/
+dist.noindex/
+.DS_Store
+__pycache__/
+*.pyc
+*.log
+*.dmg
+*.app/
+*.tar.gz
+*.tar.xz
+*.zip
+*.partial
+.env
+.env.*
+
+# Downloaded runtime archives/unpacked engines must never enter Git.
+/Vendor/*
+!/Vendor/DXMT-LICENSE
+!/Vendor/DXMT-COPYING.LIB
+
+# Blizzard-owned portraits are fetched from a pinned upstream revision.
+/Assets/HeroIcons/2d/
