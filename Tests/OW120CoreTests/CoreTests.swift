@@ -60,11 +60,17 @@ struct CoreTests {
             let original = try Data(contentsOf: source.appendingPathComponent(browserRelative))
             let sourceFingerprint = try CommunityInstaller.sourceFingerprint(source)
             // Signed inert fixtures satisfy runtime validation; no Wine or game runs.
+            // System files can live on a different APFS volume on hosted runners.
+            // Fixture setup may copy bytes; production game import still uses clonefile.
+            func signedFixture(at target: URL) throws {
+                try FileManager.default.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
+                try FileManager.default.copyItem(at: URL(fileURLWithPath: "/usr/bin/true"), to: target)
+            }
             let engine = layout.community.appendingPathComponent("soju26/bin")
-            try Command.clone(URL(fileURLWithPath: "/usr/bin/true"), to: engine.appendingPathComponent("wine"))
-            try Command.clone(URL(fileURLWithPath: "/usr/bin/true"), to: engine.appendingPathComponent("wineserver"))
+            try signedFixture(at: engine.appendingPathComponent("wine"))
+            try signedFixture(at: engine.appendingPathComponent("wineserver"))
             if legacy {
-                try Command.clone(URL(fileURLWithPath: "/usr/bin/true"), to: layout.engine.appendingPathComponent("bin/wine"))
+                try signedFixture(at: layout.engine.appendingPathComponent("bin/wine"))
                 try Command.write("[Bottle]\n", to: layout.bottle.appendingPathComponent("cxbottle.conf"))
                 try JSONFile.write(Installation(sourceApp: "", sourceBottle: source.path, crossoverVersion: "", createdAt: Date(), patchSHA256: EnvironmentService.patchHash, sourceFingerprint: sourceFingerprint), to: layout.manifest)
             }

@@ -49,7 +49,7 @@ OW120 更新为 OverLaunch 时继续使用原来的游戏与配置；本机只�
 
 ## 安装包与构建
 
-源码构建需要 Apple Silicon Mac、macOS 14+、Swift 6 工具链（Xcode 或 Command Line Tools）、Python 3，以及网络连接。核心测试不需要游戏、账号或 Wine。构建脚本从固定来源下载并校验 DXMT 与英雄头像；字体及许可证随源码提供。英雄图像不适用源码的 MIT 许可证，详见 [第三方说明](THIRD_PARTY.md)。
+源码构建需要 Apple Silicon Mac、macOS 14+、Swift 6 工具链（Xcode 或 Command Line Tools）、Python 3，以及网络连接。测试不需要游戏、账号或 Wine；首次执行会下载并校验约 33 MB 的 DXMT 测试依赖。构建脚本从固定来源下载并校验 DXMT 与英雄头像；字体及许可证随源码提供。英雄图像不适用源码的 MIT 许可证，详见 [第三方说明](THIRD_PARTY.md)。
 
 本次公开的是源码，尚无正式签名、公证的二进制发行版。
 
