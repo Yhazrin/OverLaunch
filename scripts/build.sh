@@ -21,9 +21,14 @@ CLANG_PATH="$(xcrun --find clang)"
 "$CLANG_PATH" -arch arm64 -arch x86_64 -isysroot "$SDK_PATH" -mmacosx-version-min=14.0 -fobjc-arc \
   scripts/diagnostics/metal-smoke.m -framework Foundation -framework Metal -framework AppKit -framework QuartzCore \
   -o "$APP/Contents/MacOS/OW120GraphicsProbe"
-codesign --force --sign "${OW120_SIGN_IDENTITY:--}" "$APP/Contents/MacOS/OW120GraphicsProbe"
+SIGNING_ARGS=(--force --sign "${OW120_SIGN_IDENTITY:--}")
+if [[ "${OW120_SIGN_IDENTITY:--}" != '-' ]]; then
+  SIGNING_ARGS+=(--options runtime --timestamp)
+fi
+codesign "${SIGNING_ARGS[@]}" "$APP/Contents/MacOS/OW120GraphicsProbe"
 cp Vendor/dxmt-ow2-pack-v0.2.tar.gz "$APP/Contents/Resources/"
 cp THIRD_PARTY.md "$APP/Contents/Resources/"
+cp LICENSE "$APP/Contents/Resources/OverLaunch-LICENSE"
 cp Vendor/DXMT-LICENSE Vendor/DXMT-COPYING.LIB "$APP/Contents/Resources/"
 python3 scripts/verify-hero-assets.py
 mkdir -p "$APP/Contents/Resources/HeroIcons"
@@ -53,19 +58,27 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 PLIST
 # A build can override the public project address when needed.
 python3 - "$APP/Contents/Info.plist" <<'PY'
-import os, plistlib, sys
+import json, os, plistlib, re, sys
 from urllib.parse import urlparse
+release = json.load(open('release.json'))
+if not re.fullmatch(r'\d+\.\d+\.\d+', release['version']) or not re.fullmatch(r'\d+\.\d+\.\d+(?:-[a-z]+\.\d+)?', release['artifactVersion']):
+    raise SystemExit('Invalid release version')
+path = sys.argv[1]
+with open(path, 'rb') as file:
+    info = plistlib.load(file)
+info['CFBundleShortVersionString'] = release['version']
+info['CFBundleVersion'] = str(release['build'])
+info['OverLaunchReleaseVersion'] = release['artifactVersion']
+info['OverLaunchReleaseChannel'] = release['channel']
 address = os.environ.get('OVERLAUNCH_REPOSITORY_URL', 'https://github.com/Yhazrin/OverLaunch').strip()
 if address:
     if urlparse(address).scheme != 'https' or not urlparse(address).netloc:
         raise SystemExit('OVERLAUNCH_REPOSITORY_URL must be an HTTPS project URL')
-    path = sys.argv[1]
-    with open(path, 'rb') as file:
-        info = plistlib.load(file)
     info['OverLaunchRepositoryURL'] = address
-    with open(path, 'wb') as file:
-        plistlib.dump(info, file)
+with open(path, 'wb') as file:
+    plistlib.dump(info, file)
 PY
-codesign --force --sign "${OW120_SIGN_IDENTITY:--}" "$APP"
+codesign "${SIGNING_ARGS[@]}" "$APP/Contents/MacOS/OW120"
+codesign "${SIGNING_ARGS[@]}" "$APP"
 codesign --verify --strict "$APP"
 print "Built: $APP"

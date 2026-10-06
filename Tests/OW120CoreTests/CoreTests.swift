@@ -4,6 +4,36 @@ import SQLite3
 @testable import OW120Core
 
 struct CoreTests {
+    @Test func testImportGuideNormalizesDriveCAndRejectsIncompleteSourceWithoutChanges() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("overlaunch-guide-" + UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let source = root.appendingPathComponent("source")
+        let destination = root.appendingPathComponent("private")
+        let game = source.appendingPathComponent("drive_c/Program Files (x86)/Overwatch/_retail_/Overwatch.exe")
+        let client = source.appendingPathComponent("drive_c/Program Files (x86)/Battle.net/Battle.net.exe")
+        #expect(!ImportAssessment.inspect(nil, destination: destination).canProceed)
+        try Command.write("client-fixture", to: client)
+        #expect(!ImportAssessment.inspect(source, destination: destination).canProceed)
+        try Command.write("game-fixture", to: game)
+        let result = ImportAssessment.inspect(source.appendingPathComponent("drive_c"), destination: destination)
+        #expect(result.canProceed)
+        #expect(result.source == source.resolvingSymlinksInPath().standardizedFileURL)
+        #expect(!FileManager.default.fileExists(atPath: destination.path))
+        #expect(try String(contentsOf: game, encoding: .utf8) == "game-fixture")
+    }
+    @Test func testImportGuideRejectsGameLinkedOutsideTheSelectedContainer() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("overlaunch-guide-link-" + UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let source = root.appendingPathComponent("source")
+        let game = source.appendingPathComponent("drive_c/Program Files (x86)/Overwatch/_retail_/Overwatch.exe")
+        let outside = root.appendingPathComponent("external-game.exe")
+        try Command.write("external-fixture", to: outside)
+        try Command.write("client-fixture", to: source.appendingPathComponent("drive_c/Program Files (x86)/Battle.net/Battle.net.exe"))
+        try FileManager.default.createDirectory(at: game.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try FileManager.default.createSymbolicLink(at: game, withDestinationURL: outside)
+        #expect(!ImportAssessment.inspect(source, destination: root.appendingPathComponent("private")).canProceed)
+        #expect(try String(contentsOf: outside, encoding: .utf8) == "external-fixture")
+    }
     @Test func testDeviceMatchingUsesDesktopWorkloadAndPreservesManualSettings() throws {
         func machine(_ chip: String, _ memory: Int, _ width: Int, _ height: Int, _ hz: Double = 120) -> MachineInfo {
             MachineInfo(chip: chip, memoryGB: memory, macOS: "test", crossoverVersion: "", sourceBottle: nil, displayHz: hz, maximumDisplayHz: hz, lowPowerMode: false, prepared: false, desktopWidth: width, desktopHeight: height)

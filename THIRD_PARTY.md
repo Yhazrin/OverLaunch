@@ -19,7 +19,7 @@ This checksum pins the exact bytes fetched from the author's GitHub release. It 
 
 CrossOver, Apple's D3DMetal/GPTK components, Battle.net and the Overwatch game executable/data are NOT included in the distributed OW120.app. Version 0.2 imports the user's existing game bottle and settings using APFS copy-on-write, and installs the free community engine directly. It does not clone or require a commercial CrossOver application or license for execution. Private game copies, login state and logs live in the user's Application Support directory and must not be included in a public release. No Apple/CodeWeavers/Blizzard/NetEase affiliation or endorsement is claimed.
 
-The launcher is locally ad-hoc signed. Public distribution requires a separate release process, Developer ID signing/notarization and a review of applicable third-party distribution obligations. This build is prepared for the current user's local Mac.
+The beta launcher uses ad-hoc signing, without Developer ID notarization. Stable releases require Developer ID signing and Apple notarization. Binary release assets include the exact corresponding DXMT source archive; third-party licenses remain separate from the launcher MIT license.
 
 ## 可选社区运行时（2026-09-25）
 

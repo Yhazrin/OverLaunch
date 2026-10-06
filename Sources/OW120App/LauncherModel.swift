@@ -4,7 +4,7 @@ import OW120Core
 
 @MainActor @Observable
 final class LauncherModel {
-    let layout = Layout()
+    let layout: OW120Core.Layout
     let environment: EnvironmentService
     let telemetry: TelemetryService
     var machine: MachineInfo?
@@ -27,8 +27,14 @@ final class LauncherModel {
     var appearanceStatus = ""
     var heroSearch = ""
     var foreground = true
-    init() {
-        let service = EnvironmentService(); environment = service; telemetry = TelemetryService(environment: service)
+    var setupVisible = false
+    var setupStep = SetupStep.device
+    var setupDevice: SetupDeviceReport?
+    var importAssessment: ImportAssessment?
+    private var setupDecisionMade = false
+    init(layout: OW120Core.Layout = ProcessInfo.processInfo.environment["OW120_ROOT"].map { Layout(root: URL(fileURLWithPath: $0)) } ?? Layout()) {
+        self.layout = layout
+        let service = EnvironmentService(layout: layout); environment = service; telemetry = TelemetryService(environment: service)
     }
     func refresh() async {
         if iconAssets == nil {
@@ -47,6 +53,13 @@ final class LauncherModel {
         startupIssue = await environment.startupIssue()
         status = running ? "战网运行中 · 请在战网内进入游戏" : machine?.prepared == true && layout.isSoju ? "独立环境已就绪" : "导入已有游戏后即可启动"
         hasLoaded = true
+        if !setupDecisionMade {
+            setupDecisionMade = true
+            if machine?.prepared != true || !layout.isSoju {
+                sourceBottle = machine?.sourceBottle.map { URL(fileURLWithPath: $0) }
+                if !FileManager.default.fileExists(atPath: setupDismissal.path) { openSetup() }
+            }
+        }
     }
     func perform(_ action: @escaping @MainActor () async throws -> Void) {
         guard !busy else { return }; busy = true; error = nil
@@ -56,6 +69,35 @@ final class LauncherModel {
         perform {
             try await self.environment.prepareFreeRuntime(archive: Assets.archive, sourceBottle: self.sourceBottle) { message in Task { @MainActor in self.status = message } }
             await self.refresh()
+        }
+    }
+    private var setupDismissal: URL { layout.root.appendingPathComponent("setup-guide-dismissed") }
+    func openSetup() {
+        setupVisible = true
+        setupStep = machine?.prepared == true && layout.isSoju ? .done : .device
+        Task { setupDevice = await environment.setupDeviceReport(); assessSource() }
+    }
+    func dismissSetup() {
+        guard !busy else { return }
+        setupVisible = false
+        try? Command.write("1\n", to: setupDismissal)
+    }
+    func assessSource() {
+        importAssessment = ImportAssessment.inspect(sourceBottle, destination: layout.root)
+        if importAssessment?.canProceed == true { sourceBottle = importAssessment?.source }
+    }
+    func guidedInstall() {
+        guard setupDevice?.canProceed == true else { error = "请先完成设备检查。"; setupStep = .device; return }
+        assessSource()
+        guard importAssessment?.canProceed == true else { error = importAssessment?.issue; setupStep = .source; return }
+        setupStep = .install
+        perform {
+            try await self.environment.saveLaunchProfile(self.profile)
+            try await self.environment.prepareFreeRuntime(archive: Assets.archive, sourceBottle: self.sourceBottle) { message in
+                Task { @MainActor in self.status = message }
+            }
+            await self.refresh()
+            self.setupStep = .done
         }
     }
     func launch() {
@@ -142,7 +184,7 @@ final class LauncherModel {
         let panel = NSOpenPanel(); panel.canChooseDirectories = true; panel.canChooseFiles = false; panel.allowsMultipleSelection = false
         panel.message = "选择已安装国服战网和守望先锋的容器目录（包含 drive_c）"
         panel.directoryURL = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support/CrossOver/Bottles")
-        if panel.runModal() == .OK { sourceBottle = panel.url }
+        if panel.runModal() == .OK { sourceBottle = panel.url; assessSource() }
     }
     func showFiles() { NSWorkspace.shared.open(session?.folder ?? layout.root) }
     func checkHealth() { perform {

@@ -170,6 +170,18 @@ struct LauncherView: View {
     }
     private var homePage: some View {
         VStack(alignment: .leading, spacing: 28) {
+            if model.setupVisible {
+                SetupGuideView(model: model, compact: compact) {
+                    VStack(spacing: 5) {
+                        configurationPicker; resolutionPicker; renderScalePicker
+                        if customOutput {
+                            GameNumberField(title: "宽度", value: profileBinding(\.width))
+                            GameNumberField(title: "高度", value: profileBinding(\.height))
+                        }
+                        GameSelect(title: "帧率目标", selection: profileBinding(\.targetFPS), choices: [120, 144, 165, 240].map { GameChoice($0, "\($0) FPS") }, compact: compact)
+                    }
+                }
+            } else {
             launchPanel
             if ready { homeLaunchSettings }
             heroRoster
@@ -178,6 +190,7 @@ struct LauncherView: View {
                 VStack(alignment: .leading, spacing: 24) { homePerformance; Divider(); deviceInformation }
             } else {
                 HStack(alignment: .top, spacing: 44) { homePerformance; deviceInformation }
+            }
             }
         }
     }
@@ -195,7 +208,7 @@ struct LauncherView: View {
                     model.sourceBottle.map { "已选择：\($0.lastPathComponent)" } ?? model.status
             ) {
                 VStack(alignment: .leading, spacing: 10) {
-                    Button { ready ? model.launch() : model.prepare() } label: {
+                    Button { ready ? model.launch() : model.openSetup() } label: {
                         HStack(spacing: 16) {
                             Text(primaryButtonTitle).lineLimit(1).minimumScaleFactor(0.85)
                             Spacer(minLength: 8)
@@ -548,6 +561,9 @@ struct LauncherView: View {
             }
             toolRow("修复运行组件", detail: "保留游戏安装，重新校验引擎与图形组件。") {
                 Button("修复组件") { model.repairRuntime() }.disabled(model.running || model.busy || !model.hasLoaded)
+            }
+            toolRow("安装引导", detail: "检查设备、游戏目录和首次启动设置。") {
+                Button("打开引导") { model.openSetup(); page = .home }.disabled(model.busy || !model.hasLoaded)
             }
             toolRow("本机诊断报告", detail: "保存环境检查结果，帮助定位启动问题。") {
                 Button("保存报告") { model.diagnostics() }.disabled(model.busy || !model.hasLoaded)

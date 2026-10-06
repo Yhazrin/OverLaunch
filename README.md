@@ -2,13 +2,15 @@
 
 Apple Silicon Mac 的国服守望先锋启动器。使用独立免费 Wine 引擎和 DXMT，导入已有游戏，管理启动设置、运行组件与性能记录。
 
-当前为 0.4.4 社区测试版。120 FPS 是目标，实战低帧仍待验收。
+当前为 0.5.0-beta.1 公开测试版。120 FPS 是目标，实战低帧仍待验收。
+
+下载安装包和首次引导见 [安装说明](docs/INSTALL.md)。发行文件位于 [Releases](https://github.com/Yhazrin/OverLaunch/releases)；未发布的草稿不会出现在公共页面。
 
 ## 启动
 
 打开 `~/Applications/OverLaunch.app`，点“启动国服战网”，再从战网进入游戏。
 
-首次使用点“导入游戏”，选择包含 `drive_c` 的已有国服战网和守望先锋容器。下载约367MB运行组件，使用APFS写时复制导入。账号登录、验证码和游戏更新在官方战网完成。
+首次打开按“检查设备 → 选择游戏 → 启动设置 → 安装组件”完成引导，也可以从工具箱重新打开。选择包含 `drive_c` 的已有国服战网和守望先锋容器。下载约367MB运行组件，使用APFS写时复制导入。账号登录、验证码和游戏更新在官方战网完成。
 
 OW120 更新为 OverLaunch 时继续使用原来的游戏与配置；本机只保留一个安装入口。数据目录仍为 `~/Library/Application Support/OW120`，无需迁移或重新下载游戏。
 
@@ -51,9 +53,9 @@ OW120 更新为 OverLaunch 时继续使用原来的游戏与配置；本机只�
 
 源码构建需要 Apple Silicon Mac、macOS 14+、Swift 6 工具链（Xcode 或 Command Line Tools）、Python 3，以及网络连接。测试不需要游戏、账号或 Wine；首次执行会下载并校验约 33 MB 的 DXMT 测试依赖。构建脚本从固定来源下载并校验 DXMT 与英雄头像；字体及许可证随源码提供。英雄图像不适用源码的 MIT 许可证，详见 [第三方说明](THIRD_PARTY.md)。
 
-本次公开的是源码，尚无正式签名、公证的二进制发行版。
+`./scripts/package.sh` 生成 `dist.noindex/OverLaunch-0.5.0-beta.1-arm64.dmg`。此候选版使用 ad-hoc 签名，尚未完成 Developer ID 公证；macOS 首次打开可能拦截，处理方式见安装说明。不要将它称为已公证稳定版。每位用户导入自己的完整游戏容器，当前不支持从零安装战网。
 
-给朋友分享 `dist.noindex/OverLaunch-0.4.4-arm64.dmg`，每位用户导入自己的游戏。包内不含游戏、账号或商业CrossOver。支持Apple Silicon/macOS14+；目前为本机签名候选，正式对外发行还需Developer ID、公证与跨设备验收。
+版本统一从 `release.json` 读取；正式签名、公证和发布流程见 [发行说明](docs/RELEASING.md)。包内不含游戏、账号或商业 CrossOver，首次使用下载独立社区 Wine 引擎。
 
 ```sh
 git clone https://github.com/Yhazrin/OverLaunch.git

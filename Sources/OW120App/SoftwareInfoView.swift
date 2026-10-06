@@ -8,7 +8,7 @@ struct SoftwareInfo {
     var repository: URL?
     static var current: SoftwareInfo {
         let info = Bundle.main.infoDictionary ?? [:]
-        let release = info["CFBundleShortVersionString"] as? String
+        let release = (info["OverLaunchReleaseVersion"] ?? info["CFBundleShortVersionString"]) as? String
         let build = info["CFBundleVersion"] as? String
         let address = (info["OverLaunchRepositoryURL"] as? String).flatMap(URL.init(string:))
         return SoftwareInfo(

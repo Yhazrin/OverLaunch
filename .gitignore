@@ -8,6 +8,7 @@
 !/docs/
 !/.github/
 !/Package.swift
+!/release.json
 !/README.md
 !/THIRD_PARTY.md
 !/RELEASE_NOTES.md
