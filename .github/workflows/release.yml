@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   package:
-    runs-on: macos-15-arm64
+    runs-on: macos-15
     timeout-minutes: 45
     permissions:
       contents: write

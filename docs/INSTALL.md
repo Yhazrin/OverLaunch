@@ -16,13 +16,13 @@
 
 ## 测试版首次打开
 
-0.5.0-beta.2 使用 ad-hoc 签名，没有 Developer ID 和 Apple 公证。macOS 可能提示开发者无法验证或阻止打开。先确认下载来自本项目、SHA-256 与该版本 SHA256SUMS 一致，再按 [Apple 的打开说明](https://support.apple.com/zh-cn/102445) 处理。不要全局关闭 Gatekeeper，也不要修改应用签名资源。
+0.5.0-beta.3 使用 ad-hoc 签名，没有 Developer ID 和 Apple 公证。macOS 可能提示开发者无法验证或阻止打开。先确认下载来自本项目、SHA-256 与该版本 SHA256SUMS 一致，再按 [Apple 的打开说明](https://support.apple.com/zh-cn/102445) 处理。不要全局关闭 Gatekeeper，也不要修改应用签名资源。
 
 可在终端校验下载的包：
 
 ```sh
 cd ~/Downloads
-shasum -a 256 OverLaunch-0.5.0-beta.2-arm64.dmg
+shasum -a 256 OverLaunch-0.5.0-beta.3-arm64.dmg
 ```
 
 若仍显示“已损坏”，重新下载并检查校验值，提交 issue 描述 macOS 版本及提示文字；不要上传含登录信息的容器或完整私人日志。
@@ -33,4 +33,4 @@ shasum -a 256 OverLaunch-0.5.0-beta.2-arm64.dmg
 
 ## 验证范围
 
-已有版本的核心测试和本机导入/运行有记录；beta.2 新建容器、官方安装器、首次游戏下载至进入游戏的完整流程尚待真实 Mac 验收，不能由代码检查或 CI 构建替代。HUD 头像白块和实战低帧仍为已知问题。目标 120 FPS 不代表最低帧已达到 120。
+已有版本的核心测试和本机导入/运行有记录；beta.3 新建容器、官方安装器、首次游戏下载至进入游戏的完整流程尚待真实 Mac 验收，不能由代码检查或 CI 构建替代。HUD 头像白块和实战低帧仍为已知问题。目标 120 FPS 不代表最低帧已达到 120。
