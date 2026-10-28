@@ -47,12 +47,12 @@ struct LauncherView: View {
         if !model.hasLoaded { return "正在检查" }
         if model.startupIssue != nil || model.error != nil { return "需要处理" }
         if model.running { return "战网运行中" }
-        return ready ? "已就绪" : "待导入"
+        return ready ? "已就绪" : "待安装"
     }
     private var primaryButtonTitle: String {
         if !model.hasLoaded { return "正在检查…" }
         if model.running { return "战网运行中" }
-        return ready ? "启动国服战网" : "导入游戏"
+        return ready ? (model.battleNetInstalled ? "启动国服战网" : "继续安装战网") : "安装战网与游戏"
     }
     var body: some View {
         GeometryReader { geometry in
@@ -220,7 +220,7 @@ struct LauncherView: View {
                     .frame(maxWidth: 340, alignment: .leading)
                     .disabled(model.busy || model.running || !model.hasLoaded)
                     .accessibilityIdentifier("launchGame")
-                    .help(ready ? "打开国服战网，再在战网内进入游戏" : "复制已有游戏并安装免费运行组件")
+                    .help(ready ? "打开国服战网，再在战网内进入游戏" : "全新安装战网与游戏，或导入已有容器")
                     if model.running {
                         Button("停止游戏与战网") { model.showStopConfirmation = true }
                             .buttonStyle(LaunchSecondaryButtonStyle()).disabled(model.busy)

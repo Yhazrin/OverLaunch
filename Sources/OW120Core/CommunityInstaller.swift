@@ -53,7 +53,7 @@ struct CommunityInstaller {
     }
 
     func install(source: URL?, graphicsArchive: URL, localEngineArchive: URL? = nil,
-                 replaceRuntime: Bool = false, progress: @Sendable (String) -> Void) async throws {
+                 replaceRuntime: Bool = false, freshInstall: Bool = false, progress: @Sendable (String) -> Void) async throws {
         guard try Command.sha256(graphicsArchive) == EnvironmentService.patchHash else { throw OWError.message("图形组件校验失败，请重新下载 OW120。") }
         let community = layout.community
         let engine = community.appendingPathComponent("soju26")
@@ -61,7 +61,7 @@ struct CommunityInstaller {
         let documents = community.appendingPathComponent("Documents-soju26")
         let needsImport = !fm.fileExists(atPath: prefix.path)
         var originalFingerprint: [String: String] = [:]
-        if needsImport {
+        if needsImport && !freshInstall {
             guard let source, fm.fileExists(atPath: source.appendingPathComponent("drive_c/Program Files (x86)/Overwatch/_retail_/Overwatch.exe").path),
                   fm.fileExists(atPath: source.appendingPathComponent("drive_c/Program Files (x86)/Battle.net/Battle.net.exe").path) else {
                 throw OWError.message("请选择包含战网和守望先锋的已有游戏容器。")
@@ -89,7 +89,7 @@ struct CommunityInstaller {
         try Command.run("/usr/bin/codesign", ["--force", "--sign", "-", pack.appendingPathComponent("x86_64-unix/winemetal.so").path])
         let stagedPrefix = staging.appendingPathComponent("prefix")
         let stagedDocuments = staging.appendingPathComponent("documents")
-        if needsImport, let source {
+        if needsImport && !freshInstall, let source {
             progress("正在导入已有国服游戏…")
             try Command.clone(source, to: stagedPrefix)
             let sourceDocuments = source.appendingPathComponent("drive_c/users/crossover/Documents").resolvingSymlinksInPath()
@@ -103,6 +103,18 @@ struct CommunityInstaller {
             if !fm.fileExists(atPath: stagedPrefix.appendingPathComponent("cxbottle.conf").path) { try Command.write("[Bottle]\n", to: stagedPrefix.appendingPathComponent("cxbottle.conf")) }
             guard try Self.sourceFingerprint(source) == originalFingerprint else { throw OWError.message("源游戏配置在导入时发生变化，请退出源战网后重试。") }
             guard !fm.fileExists(atPath: documents.path) else { throw OWError.message("存在未完成的游戏导入。请在支持页面检查导入目录。") }
+        }
+        if needsImport && freshInstall {
+            progress("正在创建独立 Windows 环境…")
+            let selectedEngine = needsEngine ? stagedEngine : engine
+            let env = Self.baseEnvironment(engine: selectedEngine, prefix: stagedPrefix)
+            defer { _ = try? Command.run(selectedEngine.appendingPathComponent("bin/wineserver").path, ["-k"], environment: env, allowFailure: true) }
+            try Command.run(selectedEngine.appendingPathComponent("bin/wine").path, ["wineboot", "--init"], environment: env)
+            try Command.run(selectedEngine.appendingPathComponent("bin/wineserver").path, ["-w"], environment: env)
+            try FreshPrefix.isolateDocuments(prefix: stagedPrefix, documents: documents)
+            try fm.createDirectory(at: stagedDocuments, withIntermediateDirectories: true)
+            try Command.write("[Bottle]\n", to: stagedPrefix.appendingPathComponent("cxbottle.conf"))
+            guard !fm.fileExists(atPath: documents.path) else { throw OWError.message("独立文档目录已存在，请先检查未完成的安装。") }
         }
         // A new engine is smoke-tested before replacing the installed engine.
         if needsEngine {
@@ -133,8 +145,8 @@ struct CommunityInstaller {
             let oldSelection = try? Data(contentsOf: layout.root.appendingPathComponent("active-runtime"))
             let oldManifest = try? Data(contentsOf: layout.manifest)
             do {
-                if needsImport, let source {
-                    var installation = Installation(sourceApp: "", sourceBottle: source.path, crossoverVersion: "", createdAt: Date(), patchSHA256: EnvironmentService.patchHash, sourceFingerprint: originalFingerprint)
+                if needsImport {
+                    var installation = Installation(sourceApp: "", sourceBottle: freshInstall ? "" : (source?.path ?? ""), crossoverVersion: "", createdAt: Date(), patchSHA256: EnvironmentService.patchHash, sourceFingerprint: originalFingerprint)
                     installation.version = 2
                     try JSONFile.write(installation, to: layout.manifest)
                 }
@@ -152,7 +164,7 @@ struct CommunityInstaller {
             for (backup, destination) in saved.reversed() { try? fm.moveItem(at: backup, to: destination) }
             throw error
         }
-        progress("导入完成 · 免费运行环境已就绪")
+        progress("免费运行环境已就绪")
     }
 
     static func baseEnvironment(engine: URL, prefix: URL) -> [String: String] {

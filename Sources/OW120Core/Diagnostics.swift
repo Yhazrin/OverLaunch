@@ -38,7 +38,7 @@ extension EnvironmentService {
         let machine = inspect()
         var checks = [HealthCheck(id: "runtime", title: "免费运行组件", detail: layout.isSoju ? "独立 Wine 引擎 · 无 CrossOver 授权依赖" : "尚未迁移到免费引擎", state: layout.isSoju && fm.fileExists(atPath: layout.engine.appendingPathComponent("bin/wine").path) ? .ready : .unavailable)]
         let game = gameExecutable(in: layout.bottle)
-        checks.append(HealthCheck(id: "game", title: "国服游戏文件", detail: fm.fileExists(atPath: game.path) ? "已导入本机安装" : "请先导入已有战网容器", state: fm.fileExists(atPath: game.path) ? .ready : .unavailable))
+        checks.append(HealthCheck(id: "game", title: "国服游戏文件", detail: fm.fileExists(atPath: game.path) ? "已找到本机安装" : "请打开战网安装守望先锋（保留默认路径）", state: fm.fileExists(atPath: game.path) ? .ready : .unavailable))
         let pack = layout.community.appendingPathComponent("graphics/dxmt-ow2-pack/x86_64-windows/d3d11.dll")
         let installed = layout.engine.appendingPathComponent("lib/wine/x86_64-windows/d3d11.dll")
         let graphicsOK = layout.isSoju && (try? Command.sha256(pack)) != nil && (try? Command.sha256(pack)) == (try? Command.sha256(installed))

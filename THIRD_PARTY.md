@@ -44,3 +44,7 @@ https://github.com/BCD1210/soju/releases/tag/engine-v1.5 。
 - OTF SHA256：139b5dcbe70d6d52de85a62d148784c6af4bd161e38fdb62ba0c1e7e5065fca6
 - 原始许可证：应用Resources/Fonts/OFL.txt（源码Assets/Fonts/OFL.txt）
 - 字体未经修改，只在启动器进程注册，不安装到系统，不是暴雪字体。英文显示标题采用macOS DIN Condensed外观近似，中文小字号正文采用macOS苹方，系统字体不随安装包分发。
+
+## 国服战网全新安装
+
+应用按用户操作从 `https://downloader.battlenet.com.cn/download/getInstaller?os=win&installer=Battle.net-Setup.exe` 下载官方滚动版 Windows 安装器，要求 HTTPS（包括重定向）及有效 PE 文件格式；格式检查不是签名或可信性证明，不声称具有固定 SHA-256。安装器仅保存在用户私有容器内，不随应用或 Release 分发。Wine 内的客户端签名验证保留。用户在官方窗口确认许可、登录并下载游戏。

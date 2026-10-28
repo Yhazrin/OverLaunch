@@ -2,8 +2,8 @@ import SwiftUI
 import OW120Core
 
 enum SetupStep: Int, CaseIterable {
-    case device, source, profile, install, done
-    var title: String { ["检查设备", "选择游戏", "启动设置", "安装组件", "安装完成"][rawValue] }
+    case device, source, profile, install, client, done
+    var title: String { ["检查设备", "安装方式", "启动设置", "安装组件", "安装战网", "进入游戏"][rawValue] }
 }
 
 struct SetupGuideView<Settings: View>: View {
@@ -39,6 +39,7 @@ struct SetupGuideView<Settings: View>: View {
                     Text("设置会保存到独立环境。安装后仍可手动调整；目标帧率不等于实测帧率。")
                         .font(LauncherTheme.uiFont(12)).foregroundStyle(LauncherTheme.muted)
                 case .install: install
+                case .client: client
                 case .done: complete
                 }
             }.padding(compact ? 20 : 28).frame(maxWidth: .infinity, alignment: .leading).background(LauncherTheme.surface.opacity(0.65))
@@ -61,12 +62,20 @@ struct SetupGuideView<Settings: View>: View {
             if let free = model.setupDevice?.availableGB, free < 5 {
                 Text("运行组件需要额外空间，建议清理磁盘后继续。").foregroundStyle(LauncherTheme.accent)
             }
-            Text("此版导入已有国服战网和守望先锋容器。运行组件由应用下载，后续运行不需要商业 CrossOver 授权。")
+            Text("支持从零安装国服战网，也可以导入已有游戏。运行组件由应用下载，不需要商业 CrossOver 授权。")
                 .font(LauncherTheme.uiFont(13)).foregroundStyle(LauncherTheme.muted)
         }.font(LauncherTheme.uiFont(13))
     }
     private var source: some View {
         VStack(alignment: .leading, spacing: 14) {
+            Picker("安装方式", selection: $model.freshInstall) {
+                Text("全新安装战网与游戏").tag(true)
+                Text("导入已有游戏容器").tag(false)
+            }.pickerStyle(.radioGroup)
+            if model.freshInstall {
+                Text("创建独立 Windows 环境，下载并打开官方国服战网安装器；登录后在战网内下载守望先锋，无需已有容器或 CrossOver。请预留游戏及更新所需空间。")
+                    .font(LauncherTheme.uiFont(13)).foregroundStyle(LauncherTheme.muted)
+            } else {
             Text("选择包含 drive_c 的完整容器；也可以直接选择其中的 drive_c 文件夹。")
                 .font(LauncherTheme.uiFont(13)).foregroundStyle(LauncherTheme.muted)
             HStack {
@@ -81,18 +90,37 @@ struct SetupGuideView<Settings: View>: View {
             }
             Text("导入前退出源容器中的游戏和战网。原安装保留，游戏、运行组件与 Documents 在 OverLaunch 中分别隔离。")
                 .font(LauncherTheme.uiFont(12)).foregroundStyle(LauncherTheme.muted)
-            Text("尚无游戏容器？当前版本暂不提供从零安装战网的流程。").font(LauncherTheme.uiFont(12)).foregroundStyle(LauncherTheme.muted)
+            }
         }
     }
     private var install: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("首次下载运行组件约 367 MB；游戏从本机容器导入。")
-            Text("下载与校验 → 导入游戏 → 安装图形组件 → 检查 Windows 启动能力")
+            Text(model.freshInstall ? "首次下载运行组件约 367 MB；下一步下载官方战网安装器，游戏在战网内安装。" : "首次下载运行组件约 367 MB；游戏从本机容器导入。")
+            Text(model.freshInstall ? "下载与校验 → 创建独立环境 → 安装图形组件 → 安装战网" : "下载与校验 → 导入游戏 → 安装图形组件 → 检查 Windows 启动能力")
                 .foregroundStyle(LauncherTheme.muted)
             if model.busy {
                 HStack(spacing: 12) { ProgressView().controlSize(.small); Text(model.status).fixedSize(horizontal: false, vertical: true) }
             } else if model.error == nil { Text("点击“开始安装”准备独立环境。") }
             else { Text("安装未完成，可以重试。现有源容器仍然保留。").foregroundStyle(LauncherTheme.accent) }
+        }.font(LauncherTheme.uiFont(13))
+    }
+    private var client: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("下载官方国服战网安装器，在弹出的窗口中完成安装并保留默认路径。登录、验证码、许可确认和游戏安装均由你在官方战网中完成。")
+            Text("1. 下载并运行安装器 → 2. 完成战网安装 → 3. 返回检查 → 4. 登录战网安装守望先锋")
+                .foregroundStyle(LauncherTheme.muted)
+            if model.busy { ProgressView().controlSize(.small) }
+            Text(model.status).textSelection(.enabled)
+            Button("下载并运行战网安装器") { model.installBattleNet() }
+                .buttonStyle(OverButtonStyle(kind: .primary)).disabled(model.busy || model.running)
+            Button("检查战网安装结果") { model.checkBattleNetInstallation() }
+                .buttonStyle(OverButtonStyle()).disabled(model.busy)
+            if model.running {
+                Button("停止安装器与战网后重试") { model.showStopConfirmation = true }
+                    .buttonStyle(OverButtonStyle(kind: .quiet)).disabled(model.busy)
+            }
+            Text("下载或安装失败可停止后重试；已创建的独立环境会保留。关闭应用后可从工具箱重新打开安装引导。")
+                .foregroundStyle(LauncherTheme.muted)
         }.font(LauncherTheme.uiFont(13))
     }
     private var complete: some View {
@@ -101,7 +129,7 @@ struct SetupGuideView<Settings: View>: View {
             LaunchProfileStrip(mode: model.savedProfile.selectedConfigurationMode.title,
                                output: model.savedProfile.borderless && model.savedProfile.disableRetina ? "跟随桌面" : "\(model.savedProfile.width) × \(model.savedProfile.height)",
                                render: "\(model.savedProfile.effectiveRenderScale)%", target: "\(model.savedProfile.targetFPS) FPS")
-            Text("打开国服战网，完成登录、验证码和游戏更新，再进入守望先锋。启动时会检查系统图形环境。")
+            Text("打开国服战网并登录，选择守望先锋，完成安装或更新，再点击“进入游戏”。游戏请保留默认安装路径。启动时会检查系统图形环境。")
                 .font(LauncherTheme.uiFont(13)).foregroundStyle(LauncherTheme.muted)
             Button("打开国服战网") { model.dismissSetup(); model.launch() }
                 .buttonStyle(OverButtonStyle(kind: .primary)).disabled(model.busy || model.running)
@@ -109,12 +137,12 @@ struct SetupGuideView<Settings: View>: View {
     }
     private var controls: some View {
         HStack {
-            if model.setupStep != .device && model.setupStep != .done {
+            if model.setupStep != .device && model.setupStep != .done && model.setupStep != .client {
                 Button("上一步") { model.setupStep = SetupStep(rawValue: model.setupStep.rawValue - 1) ?? .device }
                     .buttonStyle(OverButtonStyle(kind: .quiet)).disabled(model.busy)
             }
             Spacer()
-            if model.setupStep != .done {
+            if model.setupStep != .done && model.setupStep != .client {
                 Button(model.setupStep == .install ? model.error == nil ? "开始安装" : "重试安装" : "下一步") {
                     model.error = nil
                     if model.setupStep == .install { model.guidedInstall() }
@@ -127,7 +155,7 @@ struct SetupGuideView<Settings: View>: View {
     private var canContinue: Bool {
         switch model.setupStep {
         case .device: model.setupDevice?.canProceed == true
-        case .source: model.importAssessment?.canProceed == true
+        case .source: model.freshInstall || model.importAssessment?.canProceed == true
         default: model.hasLoaded
         }
     }

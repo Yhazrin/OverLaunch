@@ -1,0 +1,69 @@
+name: macOS beta release
+on:
+  push:
+    tags: ['v*-beta.*']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  package:
+    runs-on: macos-15-arm64
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Validate release target and toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = arm64
+          swift --version
+          python3 - <<'PY'
+          import json, os
+          release = json.load(open('release.json'))
+          assert os.environ['GITHUB_REF'] == 'refs/tags/' + release['tag'], 'Run against the exact release tag'
+          assert release['channel'] == 'beta'
+          PY
+      - name: Test core and compile/package app
+        run: |
+          set -euo pipefail
+          ./scripts/test.sh
+          ./scripts/package.sh
+          hdiutil verify "dist.noindex/OverLaunch-$(python3 -c 'import json; print(json.load(open("release.json"))["artifactVersion"])')-arm64.dmg"
+      - name: Exercise fresh Wine prefix without game or account
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! /usr/bin/arch -x86_64 /usr/bin/true; then
+            sudo softwareupdate --install-rosetta --agree-to-license
+          fi
+          export OW120_ROOT="$RUNNER_TEMP/overlaunch-fresh-smoke"
+          swift run -c release OW120 --prepare-fresh
+          swift run -c release OW120 --verify-runtime
+          swift run -c release OW120 --smoke-test
+          swift run -c release OW120 --stop
+      - name: Collect distributable files and corresponding DXMT source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release-assets
+          cp dist.noindex/OverLaunch-*-arm64.dmg release-assets/
+          curl --fail --location --retry 2 --proto '=https' --proto-redir '=https' --tlsv1.2 \
+            https://github.com/NerRobDog/dxmt/archive/c5dc3a0dfe9108e667da43de871324bd298c9c02.tar.gz \
+            -o release-assets/DXMT-c5dc3a0-source.tar.gz
+          (cd release-assets && shasum -a 256 *.dmg *.tar.gz > SHA256SUMS)
+      - name: Publish prerelease only after required checks pass
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="$(python3 -c 'import json; print(json.load(open("release.json"))["tag"])')"
+          gh release create "$TAG" release-assets/* --verify-tag --prerelease \
+            --title "OverLaunch $TAG" --notes-file RELEASE_NOTES.md

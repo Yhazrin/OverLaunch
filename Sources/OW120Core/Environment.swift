@@ -20,6 +20,37 @@ public actor EnvironmentService {
     public static let patchHash = "8d4e778ff9868883a064d7b9bfb372ed6e286e4233f60c053075ca983b2bc256"
     public init(layout: Layout = Layout()) { self.layout = layout }
 
+    public func battleNetInstalled() -> Bool {
+        fm.fileExists(atPath: layout.bottle.appendingPathComponent("drive_c/Program Files (x86)/Battle.net/Battle.net.exe").path)
+    }
+
+    public func installBattleNet(progress: @Sendable (String) -> Void = { _ in }) async throws {
+        let lock = try OperationLock(layout.root); defer { withExtendedLifetime(lock) {} }
+        guard layout.isSoju && layout.isPrepared else { throw OWError.message("请先创建独立运行环境。") }
+        try requireStopped()
+        try verifyRuntime()
+        let installer = layout.bottle.appendingPathComponent("drive_c/OverLaunch/Battle.net-Setup.exe")
+        progress("正在从官方下载国服战网安装程序…")
+        try await BattleNetInstaller.download(to: installer)
+        try requireStopped()
+        let log = layout.root.appendingPathComponent("Logs/battlenet-install.log")
+        try fm.createDirectory(at: log.deletingLastPathComponent(), withIntermediateDirectories: true)
+        fm.createFile(atPath: log.path, contents: nil)
+        let handle = try FileHandle(forWritingTo: log)
+        defer { try? handle.close() }
+        let process = Process()
+        process.executableURL = layout.engine.appendingPathComponent("bin/wine")
+        process.arguments = ["C:\\OverLaunch\\Battle.net-Setup.exe", "--lang=zhCN"]
+        process.environment = wineEnvironment()
+        process.currentDirectoryURL = installer.deletingLastPathComponent()
+        process.standardOutput = handle; process.standardError = handle
+        try process.run()
+        children.removeAll { !$0.isRunning }; children.append(process)
+        try await Task.sleep(for: .seconds(1))
+        if !process.isRunning && process.terminationStatus != 0 { throw OWError.message("战网安装程序启动失败，请检查本机安装日志后重试。") }
+        progress("请在战网窗口完成安装，保留默认安装路径，然后返回检查。")
+    }
+
     public func detectBottle() -> URL? {
         let home = fm.homeDirectoryForCurrentUser
         let root = home.appendingPathComponent("Library/Application Support/CrossOver/Bottles")
@@ -65,7 +96,7 @@ public actor EnvironmentService {
     }
     public func active() -> Bool {
         let listing = (try? Command.run("/bin/ps", ["-axo", "comm="])) ?? ""
-        return listing.split(separator: "\n").contains { $0.contains(layout.runtime.path) }
+        return children.contains { $0.isRunning } || listing.split(separator: "\n").contains { $0.contains(layout.runtime.path) }
     }
     private func requireStopped() throws {
         if active() { throw OWError.message("请先从战网菜单退出，并关闭游戏，再修改配置或运行环境。") }
@@ -82,6 +113,7 @@ public actor EnvironmentService {
     }
     public func verifyOriginal() throws -> Bool {
         let manifest = try JSONFile.read(Installation.self, from: layout.manifest)
+        if manifest.version >= 2 && manifest.sourceBottle.isEmpty { return manifest.sourceFingerprint.isEmpty }
         if manifest.version >= 2 { return try CommunityInstaller.sourceFingerprint(URL(fileURLWithPath: manifest.sourceBottle)) == manifest.sourceFingerprint }
         return try fingerprint(URL(fileURLWithPath: manifest.sourceBottle), app: URL(fileURLWithPath: manifest.sourceApp)) == manifest.sourceFingerprint
     }
@@ -151,7 +183,7 @@ public actor EnvironmentService {
         progress("独立运行时签名校验通过")
     }
 
-    public func prepareFreeRuntime(archive: URL, sourceBottle: URL? = nil, engineArchive: URL? = nil, repair: Bool = false, progress: @Sendable (String) -> Void = { _ in }) async throws {
+    public func prepareFreeRuntime(archive: URL, sourceBottle: URL? = nil, engineArchive: URL? = nil, repair: Bool = false, freshInstall: Bool = false, progress: @Sendable (String) -> Void = { _ in }) async throws {
         let lock = try OperationLock(layout.root); defer { withExtendedLifetime(lock) {} }
         try requireStopped()
         // A prepared legacy runtime can still need its first Soju game import.
@@ -159,13 +191,13 @@ public actor EnvironmentService {
         let firstImport = !fm.fileExists(atPath: layout.community.appendingPathComponent("prefix-soju26").path)
         let selected = resolveForLaunch(launchProfile())
         let installer = CommunityInstaller(layout: layout)
-        try await installer.install(source: sourceBottle ?? detectBottle(), graphicsArchive: archive,
-                                    localEngineArchive: engineArchive, replaceRuntime: repair, progress: progress)
+        try await installer.install(source: freshInstall ? nil : (sourceBottle ?? detectBottle()), graphicsArchive: archive,
+                                    localEngineArchive: engineArchive, replaceRuntime: repair, freshInstall: freshInstall, progress: progress)
         try requireStopped()
         if firstImport { try configureBattleNetBrowser(resetForNewInstallation: true) }
         try applyProfileUnlocked(selected, includeGameFiles: true)
         try verifyRuntime()
-        progress("游戏已导入 · 可以启动战网")
+        progress("独立环境已就绪")
     }
 
     public func prepare(archive: URL, sourceBottle: URL? = nil, sourceApp: URL = URL(fileURLWithPath: "/Applications/CrossOver.app"), progress: @Sendable (String) -> Void = { _ in }) throws {
@@ -274,6 +306,10 @@ public actor EnvironmentService {
     }
     func configureBattleNetBrowser(resetForNewInstallation: Bool = false) throws {
         let config = layout.bottle.appendingPathComponent("drive_c/users/crossover/AppData/Roaming/Battle.net/Battle.net.config")
+        if resetForNewInstallation && !fm.fileExists(atPath: config.path) {
+            try fm.createDirectory(at: config.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try JSONSerialization.data(withJSONObject: ["Client": ["HardwareAcceleration": "false", "Region": "CN"]], options: [.prettyPrinted, .sortedKeys]).write(to: config, options: .atomic)
+        }
         guard fm.fileExists(atPath: config.path), let data = try? Data(contentsOf: config),
               var object = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return }
         var client = object["Client"] as? [String: Any] ?? [:]

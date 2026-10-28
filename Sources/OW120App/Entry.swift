@@ -59,12 +59,12 @@ enum CLI {
                 print("已保存应用图标：" + id)
             case "--doctor":
                 let data = try JSONEncoder().encode(await env.inspect()); print(String(decoding: data, as: UTF8.self))
-            case "--prepare":
+            case "--prepare", "--prepare-fresh":
                 let sourceIndex = args.firstIndex(of: "--source")
                 let source = sourceIndex.flatMap { args.indices.contains($0 + 1) ? URL(fileURLWithPath: args[$0 + 1]) : nil }
                 let engineIndex = args.firstIndex(of: "--engine-archive")
                 let engine = engineIndex.flatMap { args.indices.contains($0 + 1) ? URL(fileURLWithPath: args[$0 + 1]) : nil }
-                try await env.prepareFreeRuntime(archive: Assets.archive, sourceBottle: source, engineArchive: engine) { print($0); fflush(stdout) }
+                try await env.prepareFreeRuntime(archive: Assets.archive, sourceBottle: source, engineArchive: engine, freshInstall: args.first == "--prepare-fresh") { print($0); fflush(stdout) }
             case "--smoke-test": print(try await env.smokeTest())
             case "--verify-runtime": try await env.verifyRuntime(); print("PRIVATE_RUNTIME_SIGNATURE_VALID")
             case "--repair-runtime":

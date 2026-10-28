@@ -31,6 +31,8 @@ final class LauncherModel {
     var setupStep = SetupStep.device
     var setupDevice: SetupDeviceReport?
     var importAssessment: ImportAssessment?
+    var freshInstall = true
+    var battleNetInstalled = false
     private var setupDecisionMade = false
     init(layout: OW120Core.Layout = ProcessInfo.processInfo.environment["OW120_ROOT"].map { Layout(root: URL(fileURLWithPath: $0)) } ?? Layout()) {
         self.layout = layout
@@ -48,10 +50,11 @@ final class LauncherModel {
         machine = await environment.inspect(); profile = await environment.launchProfile()
         savedProfile = profile
         running = await environment.active()
+        battleNetInstalled = await environment.battleNetInstalled()
         session = await environment.latestSession()
         checks = await environment.healthChecks()
         startupIssue = await environment.startupIssue()
-        status = running ? "战网运行中 · 请在战网内进入游戏" : machine?.prepared == true && layout.isSoju ? "独立环境已就绪" : "导入已有游戏后即可启动"
+        status = running ? "战网运行中 · 请在战网内进入游戏" : machine?.prepared == true && layout.isSoju ? (battleNetInstalled ? "独立环境已就绪" : "独立环境已创建 · 请继续安装战网") : "安装战网或导入已有游戏后即可启动"
         hasLoaded = true
         if !setupDecisionMade {
             setupDecisionMade = true
@@ -74,7 +77,7 @@ final class LauncherModel {
     private var setupDismissal: URL { layout.root.appendingPathComponent("setup-guide-dismissed") }
     func openSetup() {
         setupVisible = true
-        setupStep = machine?.prepared == true && layout.isSoju ? .done : .device
+        setupStep = machine?.prepared == true && layout.isSoju ? (battleNetInstalled ? .done : .client) : .device
         Task { setupDevice = await environment.setupDeviceReport(); assessSource() }
     }
     func dismissSetup() {
@@ -89,18 +92,34 @@ final class LauncherModel {
     func guidedInstall() {
         guard setupDevice?.canProceed == true else { error = "请先完成设备检查。"; setupStep = .device; return }
         assessSource()
-        guard importAssessment?.canProceed == true else { error = importAssessment?.issue; setupStep = .source; return }
+        guard freshInstall || importAssessment?.canProceed == true else { error = importAssessment?.issue; setupStep = .source; return }
         setupStep = .install
         perform {
             try await self.environment.saveLaunchProfile(self.profile)
-            try await self.environment.prepareFreeRuntime(archive: Assets.archive, sourceBottle: self.sourceBottle) { message in
+            try await self.environment.prepareFreeRuntime(archive: Assets.archive, sourceBottle: self.sourceBottle, freshInstall: self.freshInstall) { message in
                 Task { @MainActor in self.status = message }
             }
             await self.refresh()
-            self.setupStep = .done
+            self.setupStep = self.battleNetInstalled ? .done : .client
+        }
+    }
+    func installBattleNet() {
+        perform {
+            try await self.environment.installBattleNet { message in Task { @MainActor in self.status = message } }
+            await self.refresh()
+            self.status = "请在战网窗口完成安装，再返回检查安装结果"
+        }
+    }
+    func checkBattleNetInstallation() {
+        perform {
+            await self.refresh()
+            if self.battleNetInstalled { self.setupStep = .done }
+            else { self.error = "尚未找到战网。请在安装器中完成安装并保留默认路径；若已退出安装器，可重试下载。" }
         }
     }
     func launch() {
+        guard battleNetInstalled else { openSetup(); return }
+
         perform {
             self.status = "正在检查系统图形并启动…"
             let pendingProfile = self.profile
