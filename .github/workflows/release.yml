@@ -6,18 +6,31 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: release-${{ github.ref }}
-  cancel-in-progress: false
+  group: macos-beta-release
+  cancel-in-progress: true
 jobs:
   package:
     runs-on: macos-15
     timeout-minutes: 45
     permissions:
       contents: write
+      actions: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+      - name: Cancel superseded beta publication jobs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/$GITHUB_REPOSITORY/actions/workflows/release.yml/runs" --paginate \
+            --jq ".workflow_runs[] | select(.id < $GITHUB_RUN_ID and (.status == \"queued\" or .status == \"in_progress\")) | .id" \
+            > "$RUNNER_TEMP/superseded-beta-runs"
+          while read -r run; do
+            gh api --method POST "repos/$GITHUB_REPOSITORY/actions/runs/$run/cancel"
+          done < "$RUNNER_TEMP/superseded-beta-runs"
       - name: Validate release target and toolchain
         shell: bash
         run: |
@@ -37,6 +50,7 @@ jobs:
           ./scripts/package.sh 2>&1 | tee -a "$RUNNER_TEMP/overlaunch-release.log"
           hdiutil verify "dist.noindex/OverLaunch-$(python3 -c 'import json; print(json.load(open("release.json"))["artifactVersion"])')-arm64.dmg"
       - name: Exercise fresh Wine prefix without game or account
+        timeout-minutes: 10
         shell: bash
         run: |
           set -euo pipefail

@@ -3,6 +3,20 @@ import Testing
 @testable import OW120Core
 
 struct FreshInstallTests {
+    @Test func bootstrapTimesOutAndCapturesCompletedOutput() async throws {
+        let output = try await BootstrapCommand.run("/bin/echo", ["bootstrap-ready"])
+        #expect(output.contains("bootstrap-ready"))
+        let clock = ContinuousClock()
+        let started = clock.now
+        do {
+            _ = try await BootstrapCommand.run("/bin/sleep", ["30"], timeout: 0.1)
+            Issue.record("A stuck bootstrap must fail instead of waiting indefinitely")
+        } catch {
+            #expect(error.localizedDescription.contains("超时"))
+        }
+        #expect(started.duration(to: clock.now) < .seconds(5))
+    }
+
     @Test func freshDocumentsStayPrivateAfterPrefixMove() throws {
         let fm = FileManager.default
         let root = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString)

@@ -39,6 +39,14 @@ enum Assets {
 }
 
 enum CLI {
+    static func progress(_ message: String) {
+        if ProcessInfo.processInfo.environment["GITHUB_ACTIONS"] == "true" {
+            let escaped = message.replacingOccurrences(of: "%", with: "%25").replacingOccurrences(of: "\r", with: "%0D").replacingOccurrences(of: "\n", with: "%0A")
+            print("::notice::" + escaped)
+        }
+        print(message); fflush(stdout)
+    }
+
     static func run() async {
         let args = Array(CommandLine.arguments.dropFirst())
         let layout = ProcessInfo.processInfo.environment["OW120_ROOT"].map { Layout(root: URL(fileURLWithPath: $0)) } ?? Layout()
@@ -64,13 +72,13 @@ enum CLI {
                 let source = sourceIndex.flatMap { args.indices.contains($0 + 1) ? URL(fileURLWithPath: args[$0 + 1]) : nil }
                 let engineIndex = args.firstIndex(of: "--engine-archive")
                 let engine = engineIndex.flatMap { args.indices.contains($0 + 1) ? URL(fileURLWithPath: args[$0 + 1]) : nil }
-                try await env.prepareFreeRuntime(archive: Assets.archive, sourceBottle: source, engineArchive: engine, freshInstall: args.first == "--prepare-fresh") { print($0); fflush(stdout) }
+                try await env.prepareFreeRuntime(archive: Assets.archive, sourceBottle: source, engineArchive: engine, freshInstall: args.first == "--prepare-fresh") { progress($0) }
             case "--smoke-test": print(try await env.smokeTest())
             case "--verify-runtime": try await env.verifyRuntime(); print("PRIVATE_RUNTIME_SIGNATURE_VALID")
             case "--repair-runtime":
                 let index = args.firstIndex(of: "--engine-archive")
                 let engine = index.flatMap { args.indices.contains($0 + 1) ? URL(fileURLWithPath: args[$0 + 1]) : nil }
-                try await env.prepareFreeRuntime(archive: Assets.archive, engineArchive: engine, repair: true) { print($0); fflush(stdout) }
+                try await env.prepareFreeRuntime(archive: Assets.archive, engineArchive: engine, repair: true) { progress($0) }
             case "--health":
                 for check in await env.healthChecks() { print("\(check.state.rawValue): \(check.title) — \(check.detail)") }
                 if let issue = await env.startupIssue() { print("\(issue.title): \(issue.detail)") }

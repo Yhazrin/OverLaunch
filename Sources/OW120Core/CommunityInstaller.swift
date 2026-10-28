@@ -109,8 +109,11 @@ struct CommunityInstaller {
             let selectedEngine = needsEngine ? stagedEngine : engine
             let env = Self.baseEnvironment(engine: selectedEngine, prefix: stagedPrefix)
             defer { _ = try? Command.run(selectedEngine.appendingPathComponent("bin/wineserver").path, ["-k"], environment: env, allowFailure: true) }
-            try Command.run(selectedEngine.appendingPathComponent("bin/wine").path, ["wineboot", "--init"], environment: env)
-            try Command.run(selectedEngine.appendingPathComponent("bin/wineserver").path, ["-w"], environment: env)
+            let result = try await BootstrapCommand.run(selectedEngine.appendingPathComponent("bin/wine").path,
+                ["cmd.exe", "/c", "echo OW120_FRESH_PREFIX_OK"], environment: env)
+            guard result.contains("OW120_FRESH_PREFIX_OK") else { throw OWError.message("独立 Windows 环境初始化失败。") }
+            _ = try await BootstrapCommand.run(selectedEngine.appendingPathComponent("bin/wineserver").path, ["-k"], environment: env)
+            _ = try await BootstrapCommand.run(selectedEngine.appendingPathComponent("bin/wineserver").path, ["-w"], environment: env)
             try FreshPrefix.isolateDocuments(prefix: stagedPrefix, documents: documents)
             try fm.createDirectory(at: stagedDocuments, withIntermediateDirectories: true)
             try Command.write("[Bottle]\n", to: stagedPrefix.appendingPathComponent("cxbottle.conf"))
@@ -122,10 +125,10 @@ struct CommunityInstaller {
             let testPrefix = staging.appendingPathComponent("smoke-prefix")
             let env = Self.baseEnvironment(engine: stagedEngine, prefix: testPrefix)
             defer { _ = try? Command.run(stagedEngine.appendingPathComponent("bin/wineserver").path, ["-k"], environment: env, allowFailure: true) }
-            let result = try Command.run(stagedEngine.appendingPathComponent("bin/wine").path, ["cmd.exe", "/c", "echo OW120_FREE_RUNTIME_OK"], environment: env)
+            let result = try await BootstrapCommand.run(stagedEngine.appendingPathComponent("bin/wine").path, ["cmd.exe", "/c", "echo OW120_FREE_RUNTIME_OK"], environment: env)
             guard result.contains("OW120_FREE_RUNTIME_OK") else { throw OWError.message("运行组件启动检查失败，已保留现有环境。") }
             _ = try Command.run(stagedEngine.appendingPathComponent("bin/wineserver").path, ["-k"], environment: env, allowFailure: true)
-            try Command.run(stagedEngine.appendingPathComponent("bin/wineserver").path, ["-w"], environment: env)
+            _ = try await BootstrapCommand.run(stagedEngine.appendingPathComponent("bin/wineserver").path, ["-w"], environment: env)
         }
         try fm.createDirectory(at: community, withIntermediateDirectories: true)
         var moved: [(URL, URL)] = []

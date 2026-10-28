@@ -1,7 +1,7 @@
 {
   "version": "0.5.0",
-  "build": 17,
-  "artifactVersion": "0.5.0-beta.3",
-  "tag": "v0.5.0-beta.3",
+  "build": 18,
+  "artifactVersion": "0.5.0-beta.4",
+  "tag": "v0.5.0-beta.4",
   "channel": "beta"
 }
