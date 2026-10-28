@@ -1,0 +1,34 @@
+name: Diagnose beta4 packaging
+on:
+  push:
+    branches: [ops/beta4-diagnostics]
+permissions:
+  actions: write
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Stop stalled publication and surface terminal build output
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api --method POST "repos/$GITHUB_REPOSITORY/actions/runs/40631911718/cancel"
+          for attempt in $(seq 1 30); do
+            status="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/40631911718" --jq .status)"
+            if [[ "$status" == completed ]]; then break; fi
+            sleep 3
+          done
+          gh api "repos/$GITHUB_REPOSITORY/actions/jobs/122630004435/logs" > "$RUNNER_TEMP/build.log"
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          lines = (Path(os.environ['RUNNER_TEMP']) / 'build.log').read_text(errors='replace').splitlines()
+          for line in lines[-65:]:
+              if any(word in line.lower() for word in ('token', 'authorization', 'secret')):
+                  continue
+              print('::notice::' + line.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A'))
+          PY
