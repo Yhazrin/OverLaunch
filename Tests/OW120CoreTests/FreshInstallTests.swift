@@ -19,7 +19,7 @@ struct FreshInstallTests {
         try fm.moveItem(at: staged, to: installed)
         try fm.createDirectory(at: privateDocuments, withIntermediateDirectories: true)
         let legacy = installed.appendingPathComponent("drive_c/users/crossover/Documents")
-        #expect(legacy.resolvingSymlinksInPath() == privateDocuments)
+        #expect(legacy.resolvingSymlinksInPath() == privateDocuments.resolvingSymlinksInPath())
         try Command.write("private", to: legacy.appendingPathComponent("game.ini"))
         #expect(try String(contentsOf: host.appendingPathComponent("keep.txt"), encoding: .utf8) == "host-unchanged")
         #expect(!fm.fileExists(atPath: host.appendingPathComponent("game.ini").path))

@@ -15,7 +15,25 @@ jobs:
       - name: Toolchain
         run: swift --version
       - name: Test isolated core
-        run: ./scripts/test.sh
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./scripts/test.sh 2>&1 | tee "$RUNNER_TEMP/overlaunch-tests.log"
+      - name: Surface compiler and test diagnostics
+        if: failure()
+        shell: bash
+        run: |
+          python3 - <<'PYTHON'
+          import os
+          from pathlib import Path
+          log = Path(os.environ['RUNNER_TEMP']) / 'overlaunch-tests.log'
+          if log.exists():
+              diagnostics = [line for line in log.read_text(errors='replace').splitlines()
+                             if 'error:' in line or 'failed' in line.lower() or 'Expectation failed' in line]
+              for line in diagnostics[-25:]:
+                  message = line.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+                  print('::error::' + message)
+          PYTHON
       - name: Compile launcher
         run: swift build -c release
       - name: Verify bundled font
