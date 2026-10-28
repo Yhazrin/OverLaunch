@@ -33,8 +33,8 @@ jobs:
       - name: Test core and compile/package app
         run: |
           set -euo pipefail
-          ./scripts/test.sh
-          ./scripts/package.sh
+          ./scripts/test.sh 2>&1 | tee "$RUNNER_TEMP/overlaunch-release.log"
+          ./scripts/package.sh 2>&1 | tee -a "$RUNNER_TEMP/overlaunch-release.log"
           hdiutil verify "dist.noindex/OverLaunch-$(python3 -c 'import json; print(json.load(open("release.json"))["artifactVersion"])')-arm64.dmg"
       - name: Exercise fresh Wine prefix without game or account
         shell: bash
@@ -44,10 +44,25 @@ jobs:
             sudo softwareupdate --install-rosetta --agree-to-license
           fi
           export OW120_ROOT="$RUNNER_TEMP/overlaunch-fresh-smoke"
-          swift run -c release OW120 --prepare-fresh
+          swift run -c release OW120 --prepare-fresh 2>&1 | tee -a "$RUNNER_TEMP/overlaunch-release.log"
           swift run -c release OW120 --verify-runtime
           swift run -c release OW120 --smoke-test
           swift run -c release OW120 --stop
+      - name: Surface release diagnostics
+        if: failure()
+        shell: bash
+        run: |
+          python3 - <<'PYTHON'
+          import os
+          from pathlib import Path
+          log = Path(os.environ['RUNNER_TEMP']) / 'overlaunch-release.log'
+          if log.exists():
+              lines = [line for line in log.read_text(errors='replace').splitlines()
+                       if 'error:' in line or 'failed' in line.lower() or 'OverLaunch:' in line]
+              for line in lines[-25:]:
+                  message = line.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+                  print('::error::' + message)
+          PYTHON
       - name: Collect distributable files and corresponding DXMT source
         shell: bash
         run: |

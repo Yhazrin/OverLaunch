@@ -121,7 +121,7 @@ enum CLI {
                     print(args.first == "--benchmark-start" ? "实战采样已开始" : "实战采样已结束")
                 }
             default:
-                print("OverLaunch: --doctor | --prepare [--source 容器目录] [--engine-archive 文件] | --launch | --stop | --config-mode automatic/performance/balanced/clarity/manual | --render-scale 50..100 | --list-icons | --set-icon 英雄ID/default | --profile performance/balanced/d3dmetal | --frame-pacing game/metal | --poll | --benchmark-start | --benchmark-end | --report | --health | --graphics-check | --diagnostics | --repair-runtime | --verify-original")
+                print("OverLaunch: --doctor | --prepare-fresh | --prepare [--source 容器目录] [--engine-archive 文件] | --launch | --stop | --config-mode automatic/performance/balanced/clarity/manual | --render-scale 50..100 | --list-icons | --set-icon 英雄ID/default | --profile performance/balanced/d3dmetal | --frame-pacing game/metal | --poll | --benchmark-start | --benchmark-end | --report | --health | --graphics-check | --diagnostics | --repair-runtime | --verify-original")
             }
         } catch { fputs("OverLaunch: \(error.localizedDescription)\n", stderr); exit(1) }
     }
